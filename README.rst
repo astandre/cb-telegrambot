@@ -8,6 +8,8 @@ Herrera, Andre & Yaguachi, Lady & Piedra, Nelson. (2019). Building Conversationa
 Running scripts
 
 
+``docker build -t astandre/kbsbot_oc_tc --build-arg CONNECTION_KEY=tokendeseguridad --build-arg API_KEY=616944972:AAFUU_Od5-fiEg_Oe7pV0g-aWgXuAVM0ctk . -f docker/Dockerfile``
+
 ``docker build -t astandre/kbsbot_oc_tc . -f docker/Dockerfile``
 
 

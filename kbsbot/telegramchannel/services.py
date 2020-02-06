@@ -3,7 +3,12 @@ import requests
 import os
 
 BASE_URL = "http://127.0.0.1:5005"
+# BASE_URL = os.environ.get("BASE_URL")
+
 CONNECTION_KEY = "tokendeseguridad"
+# CONNECTION_KEY = os.environ.get("CONNECTION_KEY")
+
+
 session = Session()
 session.trust_env = False
 session.verify = False
@@ -29,10 +34,10 @@ def chat_with_system(data):
     json.update(data)
     try:
         r = session.post(url, json=json)
-        print(">>>>> SentData ", url, json)
+        # print(">>>>> SentData ", url, json)
         if r.status_code == 200:
             response = r.json()
-            print("<<<<< ReceivedData ", response)
+            # print("<<<<< ReceivedData ", response)
             return response
     except requests.exceptions.RequestException as e:
         print(e)

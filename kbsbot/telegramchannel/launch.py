@@ -6,8 +6,11 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Call
                           ConversationHandler)
 from telegram import ParseMode
 import logging
+from functools import wraps
+import os
 
 API_KEY = "616944972:AAFUU_Od5-fiEg_Oe7pV0g-aWgXuAVM0ctk"
+# API_KEY = os.environ.get("API_KEY")
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -18,6 +21,17 @@ logger = logging.getLogger(__name__)
 CHAT, HELP = range(2)
 
 
+def send_typing_action(func):
+    """Sends typing action while processing func command."""
+
+    @wraps(func)
+    def command_func(update, context, *args, **kwargs):
+        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
+        return func(update, context, *args, **kwargs)
+
+    return command_func
+
+
 def start(update, context):
     user = update.message.from_user.username
     greetings = get_greetings()
@@ -25,10 +39,10 @@ def start(update, context):
     update.message.reply_text(full_response)
 
 
+@send_typing_action
 def chat(update, context):
     # update.send_chat_action(update.message.chat_id, action=ChatAction.TYPING)
-    logger.info("Raw-Message: %s", update.message)
-    print(update)
+    # logger.info("Raw-Message: %s", update.message)
     # Creating user
     user_name = update.message.from_user.username
     content = update.message.text
@@ -58,8 +72,9 @@ def chat(update, context):
             "context": local_context
         }
     }
-
+    logger.info("[CHAT] >>>>> SentData  %s", data)
     resp = chat_with_system(data)
+    logger.info("[CHAT] <<<<< ReceivedData %s", data)
     if resp is not None:
         if len(resp["context"]["entities"]) > 0:
             context.chat_data["entities"] = resp["context"]["entities"]
@@ -67,7 +82,7 @@ def chat(update, context):
             update.message.reply_text(resp["answer"]["text"])
             context.chat_data["intent"] = None
         elif resp["answer"]["answer_type"] == "options":
-            print("Carrying context ", resp["context"]["intent"])
+            # print("Carrying context ", resp["context"]["intent"])
             context.chat_data["intent"] = resp["context"]["intent"]
             context.chat_data["entity_type"] = resp["answer"]["options"]["entity"]
             reply_keyboard = InlineKeyboardMarkup(
@@ -98,7 +113,9 @@ def button(update, context):
             "context": local_context
         }
     }
+    logger.info("[BUTTON] >>>>> SentData  %s", data)
     resp = chat_with_system(data)
+    logger.info("[BUTTON] <<<<< ReceivedData %s", data)
     if resp["answer"]["answer_type"] == "text":
         context.chat_data["intent"] = None
         context.chat_data["entities"] = resp["context"]["entities"]
@@ -109,8 +126,8 @@ def cancel(bot, update):
     return ConversationHandler.END
 
 
+@send_typing_action
 def ayuda(update, context):
-    logger.info("Se ha solicitado ayuda")
     user_name = update.message.from_user.username
     content = update.message.text
     name = update.message.from_user.first_name
@@ -125,11 +142,6 @@ def ayuda(update, context):
         "intent": None,
         "entities": []
     }
-    # if "entities" in context.chat_data and len(context.chat_data["entities"]) > 0:
-    #     local_context["entities"] = context.chat_data["entities"]
-    # if "intent" in context.chat_data and context.chat_data["intent"] is not None:
-    #     local_context["intent"] = context.chat_data["intent"]
-    # Preparing data
     data = {
         "user": data_user,
         "input": {
@@ -138,7 +150,9 @@ def ayuda(update, context):
             "context": local_context
         }
     }
+    logger.info("[HELP] >>>>> SentData  %s", data)
     resp = chat_with_system(data)
+    logger.info("[HELP] <<<<< ReceivedData %s", data)
     if resp["answer"]["answer_type"] == "help":
         full_response = prepare_chatbot_cap(resp["answer"]["help"])
         update.message.reply_text(full_response, parse_mode=ParseMode.MARKDOWN)
@@ -192,5 +206,5 @@ def main():
 
 if __name__ == '__main__':
     # Launching App
-    print("Starting bot")
+    logger.info("Starting bot")
     main()
