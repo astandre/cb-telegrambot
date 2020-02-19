@@ -9,7 +9,7 @@ import logging
 from functools import wraps
 import os
 
-# API_KEY = ""
+
 API_KEY = os.environ.get("API_KEY")
 
 # Enable logging
@@ -33,7 +33,14 @@ def send_typing_action(func):
 
 
 def start(update, context):
-    user = update.message.from_user.username
+    """
+    Whe starting starting the chatbot, this is the information presented.
+
+    :param update: update object of chatbot
+
+    :param context: context of conversation
+    """
+    user = update.message.from_user.first_name
     greetings = get_greetings()
     full_response = f"Hola {user} soy {greetings['name']}, {greetings['about']}. En que te puedo ayudar?"
     update.message.reply_text(full_response)
@@ -41,6 +48,13 @@ def start(update, context):
 
 @send_typing_action
 def chat(update, context):
+    """
+    Chat method for the chatbot.
+
+    :param update: update object of chatbot
+
+    :param context: context of conversation
+    """
     # update.send_chat_action(update.message.chat_id, action=ChatAction.TYPING)
     # logger.info("Raw-Message: %s", update.message)
     # Creating user
@@ -81,6 +95,7 @@ def chat(update, context):
         if resp["answer"]["answer_type"] == "text":
             update.message.reply_text(resp["answer"]["text"])
             context.chat_data["intent"] = None
+            context.chat_data["entities"] = []
         elif resp["answer"]["answer_type"] == "options":
             # print("Carrying context ", resp["context"]["intent"])
             context.chat_data["intent"] = resp["context"]["intent"]
@@ -99,6 +114,13 @@ def chat(update, context):
 
 
 def button(update, context):
+    """
+    Reply button when displayed options.
+
+    :param update: update object of chatbot
+
+    :param context: context of conversation
+    """
     query = update.callback_query
     entity = query.data
     entity_type = context.chat_data["entity_type"]
@@ -118,7 +140,7 @@ def button(update, context):
     logger.info("[BUTTON] <<<<< ReceivedData %s", data)
     if resp["answer"]["answer_type"] == "text":
         context.chat_data["intent"] = None
-        context.chat_data["entities"] = resp["context"]["entities"]
+        context.chat_data["entities"] = []
         query.edit_message_text(text=resp["answer"]["text"])
 
 
@@ -128,6 +150,13 @@ def cancel(bot, update):
 
 @send_typing_action
 def ayuda(update, context):
+    """
+    Help method for the chatbot.
+
+    :param update: update object of chatbot
+
+    :param context: context of conversation
+    """
     user_name = update.message.from_user.username
     content = update.message.text
     name = update.message.from_user.first_name
@@ -164,6 +193,9 @@ def error(update, context):
 
 
 def main():
+    """
+    Main method to create the chatbot object
+    """
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(token=API_KEY, use_context=True)
 

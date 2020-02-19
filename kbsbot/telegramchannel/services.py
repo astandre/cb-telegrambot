@@ -2,11 +2,11 @@ from requests import Session
 import requests
 import os
 
-BASE_URL = "http://127.0.0.1:5005"
-# BASE_URL = os.environ.get("BASE_URL")
+# BASE_URL = "http://127.0.0.1:5005"
+BASE_URL = os.environ.get("BASE_URL")
 
-CONNECTION_KEY = "tokendeseguridad"
-# CONNECTION_KEY = os.environ.get("CONNECTION_KEY")
+# CONNECTION_KEY = "tokendeseguridad"
+CONNECTION_KEY = os.environ.get("CONNECTION_KEY")
 
 
 session = Session()
